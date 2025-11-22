@@ -4,6 +4,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Checkbox } from "./ui/checkbox";
+import { loginUser } from "../api/api";
 
 interface LoginPageProps {
   onLogin: () => void;
@@ -14,10 +15,23 @@ export function LoginPage({ onLogin, onSwitchToSignup }: LoginPageProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onLogin();
+    setLoading(true);
+    setError("");
+    try {
+      const data = await loginUser(email, password);
+      console.log("Connexion réussie :", data);
+      localStorage.setItem("token", data.token); // stocker le JWT
+      onLogin(); // callback pour rediriger ou changer d'état
+    } catch (err: any) {
+      setError(err.message || "Erreur lors de la connexion");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -90,6 +104,8 @@ export function LoginPage({ onLogin, onSwitchToSignup }: LoginPageProps) {
                 Mot de passe oublié?
               </button>
             </div>
+
+            {error && <p className="text-red-500">{error}</p>}
 
             <Button
               type="submit"
